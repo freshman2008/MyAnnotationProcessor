@@ -5,6 +5,7 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
+import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
@@ -44,7 +46,7 @@ public class CompilerProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new HashSet<>();
-        types.add(Override.class.getCanonicalName());
+        types.add(Route.class.getCanonicalName());
         return types;
     }
 
@@ -68,13 +70,20 @@ public class CompilerProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-//        for (TypeElement typeElement : set) {
-//            System.out.println(typeElement.getQualifiedName());
-//        }
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(Route.class)) {
+            parseRoute(element);
+        }
 
-        printMsg(Diagnostic.Kind.NOTE, "process()");
         generateClass();
         return true;
+    }
+
+    private void parseRoute(Element element) {
+        Name simpleName = element.getSimpleName();
+
+        Annotation annotation = element.getAnnotation(Route.class);
+        String path = ((Route) annotation).path();
+        String group = ((Route) annotation).group();
     }
 
     /**
